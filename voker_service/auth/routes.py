@@ -6,7 +6,7 @@ from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
 from typing import Dict, Any, Optional, Union
 from requests_oauthlib import OAuth2Session
-from lib.utils.url_helpers import get_base_url, join_url_parts
+from .utils import join_url_parts
 from fastapi import APIRouter
 
 from .utils import construct_oauth2_authorization_url
@@ -16,6 +16,8 @@ import uuid
 
 import json
 import requests
+
+base_url = "https://wildcard-voker.onrender.com"
 
 router = APIRouter()
 
@@ -318,7 +320,7 @@ def construct_callback_url(api_service: str) -> str:
     Constructs the callback URL for a given API service.
     """
     relative_callback_url = router.url_path_for("auth_service_callback", api_service=api_service)
-    out_url = join_url_parts(get_base_url(), relative_callback_url)
+    out_url = join_url_parts(base_url, relative_callback_url)
     print(f"OUT URL: {out_url}")
     return out_url
 

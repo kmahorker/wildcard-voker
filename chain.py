@@ -3,18 +3,19 @@
 from wildcard_core.models import Action
 import requests
 
-base_url = "https://wildcard-voker.onrender.com"
+# base_url = "https://wildcard-voker.onrender.com"
+base_url = "http://localhost:8000"
 user_id = "550e8400-e29b-41d4-a716-446655440000"
 voker_1 = {
     "user_id": user_id,
     "message": "Get the RFP proposal emails related to the order number 832493284",
-    "tool": Action.Gmail.MESSAGES_LIST,
+    "tool_name": Action.Gmail.MESSAGES_LIST,
 }
 
 voker_2 = {
     "user_id": user_id,
     "message": "Create a draft email in response to the email that analyzes the RFP proposal and negotiates a price reduction",
-    "tool": Action.Gmail.DRAFTS_CREATE,
+    "tool_name": Action.Gmail.DRAFTS_CREATE,
 }
 
 # voker_3 = {
@@ -33,8 +34,6 @@ for voker in voker_list:
     response = requests.post(f"{base_url}/run_with_tool", json={
         "user_id": user_id, 
         "messages": messages, 
-        "tool": voker["tool"]
+        "tool_name": voker["tool_name"]
     })
-    
-    print(response.json())
     

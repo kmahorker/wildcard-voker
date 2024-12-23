@@ -2,6 +2,7 @@ import uuid
 from urllib.parse import urlencode
 from requests_oauthlib import OAuth2Session
 from .auth_config import settings
+from urllib.parse import urljoin
 
 
 def construct_oauth2_authorization_url(api_service, target_flow, redirect_uri, required_scopes):
@@ -32,3 +33,23 @@ def construct_oauth2_authorization_url(api_service, target_flow, redirect_uri, r
     authorization_url, generated_state = oauth.authorization_url(authorize_url, state=state)
 
     return authorization_url, generated_state
+
+def join_url_parts(base_url: str, *parts: str) -> str:
+    """
+    Joins a base URL with multiple path parts using urljoin.        
+    Example:
+        >>> join_url_parts("https://api.example.com", "/api", "/v1/", "/users")
+        'https://api.example.com/api/v1/users'
+    """
+    # Ensure base_url ends with slash for proper urljoin behavior
+    url = base_url if base_url.endswith('/') else f"{base_url}/"
+    
+    # Join all parts, ensuring each part is properly stripped
+    for part in parts:
+        if part:
+            # Remove leading/trailing slashes for consistency
+            cleaned_part = part.strip('/')
+            if cleaned_part:
+                url = urljoin(url, cleaned_part + '/')
+    
+    return url.rstrip('/')  # Remove trailing slash from final URL
