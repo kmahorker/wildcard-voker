@@ -153,6 +153,7 @@ async def start_oauth_flow(request: Request, api_service: str):
 
     return JSONResponse({"authorization_url": authorization_url})
 
+@router.get("/callback/{api_service}/")
 @router.get("/callback/{api_service}")
 async def auth_service_callback(request: Request, api_service: str):
     """
@@ -160,18 +161,18 @@ async def auth_service_callback(request: Request, api_service: str):
     and sends the tokens to the client's webhook URL.
     """
     if api_service not in [s.value for s in APIService]:
-        return RedirectResponse(url=f"{base_url}/error?error={urllib.parse.quote('Unsupported API service.')}", status_code=303)
+        return JSONResponse({"error": "Unsupported API service."})
 
     # Verify state parameter to prevent CSRF
     state = request.query_params.get('state')
     if not verify_state(state, api_service):
-        return RedirectResponse(url=f"{base_url}/error?error={urllib.parse.quote('Invalid state parameter.')}", status_code=303)
+        return JSONResponse({"error": "Invalid state parameter."})
 
     callback_url = get_callback_url(state)
     target_flow = get_target_flow(state)
     
     if not target_flow or not callback_url:
-        return RedirectResponse(url=f"{base_url}/error?error={urllib.parse.quote('Target flow or callback URL not found for the service.')}", status_code=303)
+        return JSONResponse({"error": "Target flow or callback URL not found for the service."})
     
     oauth_client = OAuth2Session(
         client_id=settings.oauth_config[api_service]['client_id'],
@@ -204,7 +205,7 @@ async def auth_service_callback(request: Request, api_service: str):
 
     print(f"WEBHOOK URL: {webhook_url}")
     if not webhook_url:
-        return RedirectResponse(url=f"{base_url}/error?error={urllib.parse.quote('Webhook URL not found for the service.')}", status_code=303)
+        return JSONResponse({"error": "Webhook URL not found for the service."})
 
     # Send the token to the client's webhook URL
     payload: WebhookOAuthCompletion = WebhookOAuthCompletion(
@@ -221,7 +222,7 @@ async def auth_service_callback(request: Request, api_service: str):
 
     response = requests.post(webhook_url, json=payload.model_dump())
     response.raise_for_status()
-    return RedirectResponse(url=f"{base_url}/success", status_code=303)
+    return JSONResponse({"message": "Token received successfully."})
 
 # TODO: This is unsafe without a Wildcard API key
 # @router.get("/auth/{api_service}/token")
