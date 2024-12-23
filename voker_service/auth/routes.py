@@ -31,11 +31,11 @@ router.state = {
 }
 
 @router.get("/health")
-async def health():
+def health():
     return JSONResponse({"message": "AgentAuth service is healthy."})
 
 @router.post("/refresh_token/{api_service}")
-async def refresh_token(request: Request, api_service: str):
+def refresh_token(request: Request, api_service: str):
     """
     Refreshes the token for a given API service using the stored refresh token.
     Expects JSON payload with:
@@ -44,7 +44,7 @@ async def refresh_token(request: Request, api_service: str):
     if api_service not in [s.value for s in APIService]:
         raise HTTPException(status_code=400, detail="Unsupported API service.")
         
-    data = await request.json()
+    data = request.json()
     webhook_url = data.get("webhook_url")
     
     if not webhook_url:
@@ -99,7 +99,7 @@ async def refresh_token(request: Request, api_service: str):
 
 # Initialize Authlib OAuth
 @router.post("/oauth_flow/{api_service}")
-async def start_oauth_flow(request: Request, api_service: str):
+def start_oauth_flow(request: Request, api_service: str):
     """
     Starts the OAuth flow based on the provided payload.
     Expects JSON payload with:
@@ -108,7 +108,7 @@ async def start_oauth_flow(request: Request, api_service: str):
     - required_scopes (list)
     """
     
-    data = await request.json()
+    data = request.json()
     
     print(f"DATA: {data}")
     api_service = data.get("api_service")
@@ -155,7 +155,7 @@ async def start_oauth_flow(request: Request, api_service: str):
 
 @router.get("/callback/{api_service}/")
 @router.get("/callback/{api_service}")
-async def auth_service_callback(request: Request, api_service: str):
+def auth_service_callback(request: Request, api_service: str):
     print(f"Received callback for service: {api_service}")
     print(f"Query params: {request.query_params}")
     

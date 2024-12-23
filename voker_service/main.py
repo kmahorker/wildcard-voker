@@ -10,6 +10,7 @@ from wildcard_core.tool_search.utils.api_service import APIService
 from wildcard_openai import ToolClient
 import sys
 import os
+import asyncio
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from voker_service.auth.routes import router as auth_router
@@ -44,18 +45,20 @@ async def health():
     return {"status": "healthy"}
 
 @app.post('/run_with_tool')
-async def run_with_tool(request: RunRequest):
-    # try:
-    api_service = APIService.GMAIL
-    webhook_url = f"{base_url}/auth_webhook/{request.user_id}"
-    tool_client, openai_client = await init_tool_node(request.tool_name, get_credentials_for_user(request.user_id, api_service), webhook_url)
-    tool_response = await run_tool_node(tool_client, openai_client, request.messages)
+def run_with_tool(request: RunRequest):
+    
+    async def run_with_tool_async():
+        api_service = APIService.GMAIL
+        webhook_url = f"{base_url}/auth_webhook/{request.user_id}"
+        tool_client, openai_client = await init_tool_node(request.tool_name, get_credentials_for_user(request.user_id, api_service), webhook_url)
+        tool_response = await run_tool_node(tool_client, openai_client, request.messages)
+        return tool_response
+    
+    tool_response = asyncio.run(run_with_tool_async())
     return {"status": "success", "data": tool_response}
-    # except Exception as e:
-    #     return {"status": "error", "error": str(e)}
 
 @app.post("/auth_webhook/{user_id}")
-async def agent_webhook(request: WebhookRequest[Any], user_id: str):
+def agent_webhook(request: WebhookRequest[Any], user_id: str):
     """
     Handle webhook callbacks from the auth_service.
     """
