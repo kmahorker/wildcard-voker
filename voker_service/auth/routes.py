@@ -21,7 +21,13 @@ base_url = "https://wildcard-voker.onrender.com"
 
 router = APIRouter()
 
-router.state = {}
+router.state = {
+    "state_store": {},
+    "webhook_url_store": {},
+    "token_store": {},
+    "target_flow_store": {},
+    "callback_url_store": {}
+}
 
 @router.get("/health")
 async def health():
@@ -234,17 +240,17 @@ def store_state(state: str, api_service: str):
     """
     Stores the state parameter associated with the API service.
     """
-    if not hasattr(router.state, 'state_store'):
-        router.state.state_store = {}
-    router.state.state_store[state] = {"api_service": api_service}  # Initialize webhook_url as None
+    if not 'state_store' in router.state:
+        router.state['state_store'] = {}
+    router.state['state_store'][state] = {"api_service": api_service}  # Initialize webhook_url as None
 
 def get_webhook_url(state: str) -> Optional[str]:
     """
     Retrieves the webhook URL associated with the given state and API service.
     """
-    if not hasattr(router.state, 'webhook_url_store'):
+    if not 'webhook_url_store' in router.state:
         return None
-    state_entry = router.state.webhook_url_store.get(state)
+    state_entry = router.state['webhook_url_store'].get(state)
     if state_entry:
         return state_entry.get("webhook_url", None)
     return None
@@ -253,19 +259,19 @@ def store_webhook_url(state: str, webhook_url: str):
     """
     Stores the webhook URL for a given state.
     """
-    if not hasattr(router.state, 'webhook_url_store'):
-        router.state.webhook_url_store = {}
-    if not state in router.state.webhook_url_store:
-        router.state.webhook_url_store[state] = {}
-    router.state.webhook_url_store[state]['webhook_url'] = webhook_url
+    if not 'webhook_url_store' in router.state:
+        router.state['webhook_url_store'] = {}
+    if not state in router.state['webhook_url_store']:
+        router.state['webhook_url_store'][state] = {}
+    router.state['webhook_url_store'][state]['webhook_url'] = webhook_url
 
 def verify_state(state: str, api_service: str) -> bool:
     """
     Verifies the state parameter.
     """
-    if not hasattr(router.state, 'state_store'):
+    if not 'state_store' in router.state:
         return False
-    state_entry = router.state.state_store.pop(state, None)
+    state_entry = router.state['state_store'].pop(state, None)
     if state_entry and state_entry["api_service"] == api_service:
         return True
     return False
@@ -274,9 +280,9 @@ def store_token(api_service: str, token: Dict[str, Any]):
     """
     Stores the OAuth tokens securely.
     """
-    if not hasattr(router.state, 'token_store'):
-        router.state.token_store = {}
-    router.state.token_store[api_service] = token
+    if not 'token_store' in router.state:
+        router.state['token_store'] = {}
+    router.state['token_store'][api_service] = token
 
     # Optionally, persist tokens to a database
     os.makedirs("tokens", exist_ok=True)
@@ -287,35 +293,35 @@ def get_token(api_service: str) -> Optional[Dict[str, Any]]:
     """
     Retrieves the stored access token for a given API service.
     """
-    return router.state.token_store.get(api_service, None)
+    return router.state['token_store'].get(api_service, None)
 
 def store_target_flow(state: str, target_flow: Union[AuthorizationCodeFlow, ImplicitFlow, PasswordFlow, ClientCredentialsFlow]):
     """
     Stores the target flow for a given state.
     """
-    if not hasattr(router.state, 'target_flow_store'):
-        router.state.target_flow_store = {}
-    router.state.target_flow_store[state] = target_flow
+    if not 'target_flow_store' in router.state:
+        router.state['target_flow_store'] = {}
+    router.state['target_flow_store'][state] = target_flow
     
 def store_callback_url(state: str, callback_url: str):
     """
     Stores the callback URL for a given state.
     """
-    if not hasattr(router.state, 'callback_url_store'):
-        router.state.callback_url_store = {}
-    router.state.callback_url_store[state] = callback_url
+    if not 'callback_url_store' in router.state:
+        router.state['callback_url_store'] = {}
+    router.state['callback_url_store'][state] = callback_url
     
 def get_callback_url(state: str) -> Optional[str]:
     """
     Retrieves the callback URL for a given state.
     """
-    return router.state.callback_url_store.get(state, None)
+    return router.state['callback_url_store'].get(state, None)
 
 def get_target_flow(state: str) -> Optional[Union[AuthorizationCodeFlow, ImplicitFlow, PasswordFlow, ClientCredentialsFlow]]:
     """
     Retrieves the target flow for a given state.
     """
-    return router.state.target_flow_store.get(state, None)
+    return router.state['target_flow_store'].get(state, None)
 
 def construct_callback_url(api_service: str) -> str:
     """
