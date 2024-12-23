@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Button } from './ui/button'
 
-const BASE_URL = "https://api.wild-card.ai/auth"
+const BASE_URL = "https://wildcard-voker.onrender.com"
 
 interface API {
   id: string
@@ -64,7 +64,7 @@ export function AuthPortal() {
     console.log(`Connecting to API: ${api.id}`)
     try {
       setLoading(api.id)
-      const response = await fetch(BASE_URL + '/oauth_flow/' + api.id, {
+      const response = await fetch(BASE_URL + '/auth/oauth_flow/' + api.id, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
