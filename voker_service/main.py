@@ -59,12 +59,13 @@ async def agent_webhook(request: WebhookRequest[Any], user_id: str):
     """
     Handle webhook callbacks from the auth_service.
     """
+    print("RECEIVED WEBHOOK: ", request.model_dump())
     if request.event == WildcardEvent.END_OAUTH_FLOW or request.event == WildcardEvent.END_REFRESH_TOKEN:
         save_credentials_for_user(user_id, request.data["api_service"], request.data)
         
         return JSONResponse({"status": "success", "message": "Credentials saved successfully", "redirect_url": f"{base_url}/success"})
     else:
-        raise HTTPException(status_code=400, detail=f"Unsupported event: {request.event}")
+        return JSONResponse({"status": "error", "message": "Unsupported event", "error": f"Unsupported event: {request.event}"})
 
 def save_credentials_for_user(user_id: str, api_service: str, credentials: Dict[str, Any]):
     if user_id not in app.state.oauth_credentials:

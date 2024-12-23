@@ -220,6 +220,7 @@ async def auth_service_callback(request: Request, api_service: str):
         )
     )
 
+    print("SENDING PAYLOAD: ", payload.model_dump())
     response = requests.post(webhook_url, json=payload.model_dump())
     response.raise_for_status()
     return JSONResponse({"message": "Token received successfully."})
