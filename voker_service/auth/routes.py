@@ -21,6 +21,8 @@ base_url = "https://wildcard-voker.onrender.com"
 
 router = APIRouter()
 
+router.state = {}
+
 @router.get("/health")
 async def health():
     return JSONResponse({"message": "AgentAuth service is healthy."})
