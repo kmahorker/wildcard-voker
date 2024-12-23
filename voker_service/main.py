@@ -13,6 +13,7 @@ from .wildcard_node import init_tool_node, run_tool_node
 
 app = FastAPI()
 base_url = "https://wildcard-voker.onrender.com"
+frontend_url = "https://wildcard-voker.vercel.app"
 
 # Configure CORS
 app.add_middleware(
