@@ -12,49 +12,24 @@ interface API {
   flow: Record<string, any>
 }
 
+const gmailScopes = "https://www.googleapis.com/auth/gmail.addons.current.action.compose https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.settings.basic https://www.googleapis.com/auth/gmail.addons.current.message.metadata https://www.googleapis.com/auth/gmail.settings.sharing https://www.googleapis.com/auth/gmail.insert https://mail.google.com/ https://www.googleapis.com/auth/gmail.addons.current.message.readonly https://www.googleapis.com/auth/gmail.labels https://www.googleapis.com/auth/gmail.addons.current.message.action https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.metadata".split(" ")
+
 const apis: API[] = [
   {
     id: 'gmail',
     name: 'Gmail',
     description: 'Connect to your Gmail account to send and receive emails',
     icon: '📧',
-    scopes: "https://www.googleapis.com/auth/gmail.addons.current.action.compose https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.settings.basic https://www.googleapis.com/auth/gmail.addons.current.message.metadata https://www.googleapis.com/auth/gmail.settings.sharing https://www.googleapis.com/auth/gmail.insert https://mail.google.com/ https://www.googleapis.com/auth/gmail.addons.current.message.readonly https://www.googleapis.com/auth/gmail.labels https://www.googleapis.com/auth/gmail.addons.current.message.action https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.metadata".split(" "),
+    scopes: gmailScopes,
     flow: {
       authorizationCode: {
         authorizationUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
         tokenUrl: 'https://oauth2.googleapis.com/token',
-        refreshUrl: 'https://oauth2.googleapis.com/token'
+        refreshUrl: 'https://oauth2.googleapis.com/token',
+        scopes: gmailScopes.map(scope => ({scope, value: scope}))
       }
     }
   },
-  // {
-  //   id: 'google_calendar',
-  //   name: 'Google Calendar',
-  //   description: 'Manage your calendar events and schedules',
-  //   icon: '📅',
-  //   scopes: [],
-  //   flow: {
-  //     authorizationCode: {
-  //       authorizationUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
-  //       tokenUrl: 'https://oauth2.googleapis.com/token',
-  //       refreshUrl: 'https://oauth2.googleapis.com/token'
-  //     }
-  //   }
-  // },
-  // {
-  //   id: 'google_drive',
-  //   name: 'Google Drive',
-  //   description: 'Access and manage your files in Google Drive',
-  //   icon: '📁',
-  //   scopes: [],
-  //   flow: {
-  //     authorizationCode: {
-  //       authorizationUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
-  //       tokenUrl: 'https://oauth2.googleapis.com/token',
-  //       refreshUrl: 'https://oauth2.googleapis.com/token'
-  //     }
-  //   }
-  // }
 ]
 
 export function AuthPortal() {
