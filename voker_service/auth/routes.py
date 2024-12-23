@@ -156,11 +156,11 @@ async def start_oauth_flow(request: Request, api_service: str):
 @router.get("/callback/{api_service}/")
 @router.get("/callback/{api_service}")
 async def auth_service_callback(request: Request, api_service: str):
-    """
-    Handles the OAuth 2.0 callback from the provider, exchanging the authorization code for tokens,
-    and sends the tokens to the client's webhook URL.
-    """
+    print(f"Received callback for service: {api_service}")
+    print(f"Query params: {request.query_params}")
+    
     if api_service not in [s.value for s in APIService]:
+        print(f"Invalid service. Valid services: {[s.value for s in APIService]}")
         return JSONResponse({"error": "Unsupported API service."})
 
     # Verify state parameter to prevent CSRF
@@ -170,7 +170,7 @@ async def auth_service_callback(request: Request, api_service: str):
 
     callback_url = get_callback_url(state)
     target_flow = get_target_flow(state)
-    
+
     if not target_flow or not callback_url:
         return JSONResponse({"error": "Target flow or callback URL not found for the service."})
     
