@@ -8,6 +8,10 @@ from wildcard_core.models.Action import Action
 from wildcard_core.tool_registry.tools.rest_api.types.auth_types import AuthType, OAuth2AuthConfig
 from wildcard_core.tool_search.utils.api_service import APIService
 from wildcard_openai import ToolClient
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from voker_service.auth.routes import router as auth_router
 from voker_service.wildcard_node import init_tool_node, run_tool_node
 
