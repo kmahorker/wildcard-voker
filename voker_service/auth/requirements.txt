@@ -1,0 +1,8 @@
+Authlib
+fastapi
+uvicorn
+PyYAML
+pydantic
+httpx
+pydantic-settings
+requests_oauthlib

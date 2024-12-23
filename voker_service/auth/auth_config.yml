@@ -1,0 +1,51 @@
+redirect_uri_base: https://api.wild-card.dev/auth/
+
+database_url: sqlite:///./oauth.db
+
+wildcard_api_key: "your-api-key-here"
+
+# Wildcard Service URLs that are allowed to access the API
+allow_origins: 
+  - https://api.wild-card.dev
+
+# OAuth configuration per APIService
+# See app registration steps at https://docs.wild-card.dev/docs/register-your-app
+oauth_config: 
+  calendar:
+    client_id:
+    client_secret:
+  
+  github:
+    client_id:
+    client_secret:
+    
+  slack:
+    client_id:
+    client_secret:
+    
+  zoom:
+    client_id:
+    client_secret:
+    
+  spotify_sonallux:
+    client_id:
+    client_secret:
+    
+  gmail:
+    client_id: "446295109994-l6j4np5icpv42a3kb5u8d3gtvar7nadq.apps.googleusercontent.com"
+    client_secret: "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"
+    
+  youtube:
+    client_id:
+    client_secret:
+    
+  notion:
+    client_id:
+    client_secret:
+    
+  discord:
+    client_id:
+    client_secret:
+    
+
+  
