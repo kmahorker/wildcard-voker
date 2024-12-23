@@ -3,11 +3,12 @@ from wildcard_core.events.types import WebhookOAuthCompletion, OAuthCompletionDa
 from wildcard_core.tool_search.utils.api_service import APIService
 from wildcard_core.tool_registry.tools.rest_api.types import OAuth2Flows, AuthorizationCodeFlow, ImplicitFlow, PasswordFlow, ClientCredentialsFlow
 from fastapi import Request, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from typing import Dict, Any, Optional, Union
 from requests_oauthlib import OAuth2Session
 from .utils import join_url_parts
 from fastapi import APIRouter
+import urllib.parse
 
 from .utils import construct_oauth2_authorization_url
 from .auth_config import settings
@@ -159,18 +160,18 @@ async def auth_service_callback(request: Request, api_service: str):
     and sends the tokens to the client's webhook URL.
     """
     if api_service not in [s.value for s in APIService]:
-        raise HTTPException(status_code=400, detail="Unsupported API service.")
+        return RedirectResponse(url=f"{base_url}/error?error={urllib.parse.quote('Unsupported API service.')}", status_code=303)
 
     # Verify state parameter to prevent CSRF
     state = request.query_params.get('state')
     if not verify_state(state, api_service):
-        raise HTTPException(status_code=400, detail="Invalid state parameter.")
+        return RedirectResponse(url=f"{base_url}/error?error={urllib.parse.quote('Invalid state parameter.')}", status_code=303)
 
     callback_url = get_callback_url(state)
     target_flow = get_target_flow(state)
     
     if not target_flow or not callback_url:
-        raise HTTPException(status_code=400, detail="Target flow or callback URL not found for the service.")
+        return RedirectResponse(url=f"{base_url}/error?error={urllib.parse.quote('Target flow or callback URL not found for the service.')}", status_code=303)
     
     oauth_client = OAuth2Session(
         client_id=settings.oauth_config[api_service]['client_id'],
@@ -203,7 +204,7 @@ async def auth_service_callback(request: Request, api_service: str):
 
     print(f"WEBHOOK URL: {webhook_url}")
     if not webhook_url:
-        raise HTTPException(status_code=400, detail="Webhook URL not found for the service.")
+        return RedirectResponse(url=f"{base_url}/error?error={urllib.parse.quote('Webhook URL not found for the service.')}", status_code=303)
 
     # Send the token to the client's webhook URL
     payload: WebhookOAuthCompletion = WebhookOAuthCompletion(
@@ -220,7 +221,7 @@ async def auth_service_callback(request: Request, api_service: str):
 
     response = requests.post(webhook_url, json=payload.model_dump())
     response.raise_for_status()
-    return response
+    return RedirectResponse(url=f"{base_url}/success", status_code=303)
 
 # TODO: This is unsafe without a Wildcard API key
 # @router.get("/auth/{api_service}/token")
