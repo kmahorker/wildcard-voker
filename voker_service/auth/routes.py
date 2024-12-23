@@ -136,7 +136,7 @@ async def start_oauth_flow(request: Request, api_service: str):
     if api_service not in [s.value for s in APIService]:
         raise HTTPException(status_code=400, detail="Unsupported API service.")
     
-    callback_url = construct_callback_url(api_service)
+    callback_url = construct_callback_url(api_service, "/auth")
     
     # Construct Authorization URL
     authorization_url, state = construct_oauth2_authorization_url(api_service, target_flow, callback_url, required_scopes)    
@@ -323,12 +323,12 @@ def get_target_flow(state: str) -> Optional[Union[AuthorizationCodeFlow, Implici
     """
     return router.state['target_flow_store'].get(state, None)
 
-def construct_callback_url(api_service: str) -> str:
+def construct_callback_url(api_service: str, route_prefix: str) -> str:
     """
     Constructs the callback URL for a given API service.
     """
     relative_callback_url = router.url_path_for("auth_service_callback", api_service=api_service)
-    out_url = join_url_parts(base_url, relative_callback_url)
+    out_url = join_url_parts(base_url, route_prefix, relative_callback_url)
     print(f"OUT URL: {out_url}")
     return out_url
 
