@@ -26,7 +26,7 @@ const apis: API[] = [
         authorizationUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
         tokenUrl: 'https://oauth2.googleapis.com/token',
         refreshUrl: 'https://oauth2.googleapis.com/token',
-        scopes: gmailScopes.map(scope => ({scope, value: scope}))
+        scopes: Object.fromEntries(gmailScopes.map(scope => [scope, scope]))
       }
     }
   },
