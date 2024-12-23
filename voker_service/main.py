@@ -1,6 +1,7 @@
 from typing import Any, Dict, List
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from wildcard_core.events.types import OAuthCompletionData, WebhookOAuthCompletion, WebhookRequest, WildcardEvent
 from wildcard_core.models.Action import Action
@@ -11,11 +12,12 @@ from chain import chain_router
 from .wildcard_node import init_tool_node, run_tool_node
 
 app = FastAPI()
+base_url = "https://wildcard-voker.onrender.com"
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"], # Update allow origins to be base_url for security
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -30,10 +32,9 @@ app.state.oauth_credentials = {}
 
 class RunRequest(BaseModel):
     user_id: str
-    message: str
+    messages: List[str]
     tool: Action
 
-base_url = "https://api.wildcard.ai"
 
 @app.get("/health")
 async def health():
@@ -42,9 +43,9 @@ async def health():
 @app.post("/run_with_tool")
 async def run_with_tool(request: RunRequest):
     api_service = Action.get_api_service(request.tool)
-    webhook_url = f"https://api.wildcard.ai/auth_webhook/{request.user_id}"
+    webhook_url = f"{base_url}/auth_webhook/{request.user_id}"
     tool_client, openai_client = await init_tool_node(api_service, get_credentials_for_user(request.user_id, api_service), webhook_url)
-    return await run_tool_node(tool_client, openai_client, request.message)
+    return await run_tool_node(tool_client, openai_client, request.messages)
 
 @app.post("/auth_webhook/{user_id}")
 async def agent_webhook(request: WebhookRequest[Any], user_id: str):
@@ -53,7 +54,8 @@ async def agent_webhook(request: WebhookRequest[Any], user_id: str):
     """
     if request.event == WildcardEvent.END_OAUTH_FLOW or request.event == WildcardEvent.END_REFRESH_TOKEN:
         save_credentials_for_user(user_id, request.data["api_service"], request.data)
-        return {"status": "success"}
+        
+        return RedirectResponse(url=f"{base_url}/success", status_code=303)
     else:
         raise HTTPException(status_code=400, detail=f"Unsupported event: {request.event}")
 
