@@ -1,7 +1,7 @@
 from typing import Any, Dict, List
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel
 from wildcard_core.events.types import OAuthCompletionData, WebhookOAuthCompletion, WebhookRequest, WildcardEvent
 from wildcard_core.models.Action import Action
@@ -62,7 +62,7 @@ async def agent_webhook(request: WebhookRequest[Any], user_id: str):
     if request.event == WildcardEvent.END_OAUTH_FLOW or request.event == WildcardEvent.END_REFRESH_TOKEN:
         save_credentials_for_user(user_id, request.data["api_service"], request.data)
         
-        return RedirectResponse(url=f"{base_url}/success", status_code=303)
+        return JSONResponse({"status": "success", "message": "Credentials saved successfully", "redirect_url": f"{base_url}/success"})
     else:
         raise HTTPException(status_code=400, detail=f"Unsupported event: {request.event}")
 
