@@ -6,7 +6,7 @@ import asyncio
 
 # base_url = "https://wildcard-voker.onrender.com"
 base_url = "https://wildcard-voker.onrender.com"
-user_id = "9a15cb1a-8709-434a-9a46-0f39ee2bd0ad"
+user_id = "56243666-a186-4d17-bc98-54323e0923e3"
 voker_1 = {
     "user_id": user_id,
     "message": "Get the RFP proposal emails related to the order number 832493284",
@@ -45,7 +45,7 @@ async def run_voker_chain():
         if response.ok:
             print(f"Response JSON: {response.json()}")
             
-        messages.append({"role": "assistant", "content": response.json()["content"]})
+            messages.append({"role": "assistant", "content": response.json()["content"]})
 
 if __name__ == "__main__":
     asyncio.run(run_voker_chain())

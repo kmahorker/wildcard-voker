@@ -57,7 +57,17 @@ def run_with_tool(request: RunRequest):
     async def run_with_tool_async():
         api_service = APIService.GMAIL
         webhook_url = f"{base_url}/auth_webhook/{request.user_id}"
-        tool_client, openai_client = await init_tool_node(request.tool_name, get_credentials_for_user(request.user_id, api_service), webhook_url)
+        
+        user_credentials = get_credentials_for_user(request.user_id, api_service)
+        auth_config = OAuth2AuthConfig(
+            type= AuthType.OAUTH2,
+            token = user_credentials["token"],
+            token_type = user_credentials["token_type"],
+            refresh_token = user_credentials["refresh_token"],
+            expires_at=user_credentials["expires_at"],
+            scopes = user_credentials["scopes"],    
+        )
+        tool_client, openai_client = await init_tool_node(request.tool_name, auth_config, webhook_url)
         tool_response = await run_tool_node(tool_client, openai_client, request.messages)
         return tool_response
     
@@ -82,7 +92,7 @@ def save_credentials_for_user(user_id: str, api_service: str, credentials: Dict[
         app.state.oauth_credentials[user_id] = {}
     app.state.oauth_credentials[user_id][api_service] = credentials
     
-def get_credentials_for_user(user_id: str, api_service: str) -> OAuth2AuthConfig:
+def get_credentials_for_user(user_id: str, api_service: str) -> Dict[str, Any]:
     if user_id not in app.state.oauth_credentials:
         raise KeyError(f"No credentials found for user {user_id}")
     if api_service not in app.state.oauth_credentials[user_id]:
