@@ -46,32 +46,32 @@ async def run_tool_node(tool_client: ToolClient, openai_client: OpenAI, messages
             messages += [
                 {"role": "tool", "tool_call_id": tool_call_id, "content": json.dumps(tool_response)}
             ]
-        
+            
         return messages
     
     # Run the first LLM completion
-    has_tool_call = True
-    
-    while has_tool_call:
-        response = run_openai_completion(messages)
+        
+    print("run openai completion")
+    response = run_openai_completion(messages)
+    print("=====response========", response)
+    tool_response = None
+    if response.choices[0].message.tool_calls is not None:
         tool_response = await tool_client.run_tools(response)
-        messages = process_response(response, messages, tool_response)
-        has_tool_call = response.choices[0].message.tool_calls is not None or response.choices[0].message.tool_calls is not []
+        print("=====tool response========", tool_response)
     
-    # Send the Tool Response back to the LLM to get a final response
-    final_response = run_openai_completion(messages)
-
-    return process_response(final_response, messages)
+    messages = process_response(response, messages, tool_response)
+        
+    return messages
 
 def main():
     # In production, auth configs would be fetched from the database
     auth_config = OAuth2AuthConfig(
         type= AuthType.OAUTH2,
-        token = "ya29.a0ARW5m74jmMIiVYJpbwKkWAT4Mq_rHBp1QuiTa_yPFCXbGszUl1aAxLcM5O76tqZiI-GMcY5WTpJlzO2k19MW0xVhr2ZrtLBgHbIaLp5jQYO-l4yGJqBJLf6svekP8TKv9A9jridOFmEkdIj31PBx4Nk2BIqe5deKkW74DM8maCgYKAUISARISFQHGX2MidStqBSSfgOnlgI-juZXumQ0175",
+        token = "ya29.a0ARW5m76WQPTxgqPPEdo1SaQI_9yL03U3CSmu_YUSJoqyuFmq3x-JIhPpZ73KV2d8kLptfnec_6oQQiFY1iCbCZWv0jUbhdE5P3uYBObaThi4Bh_ZmzwMKXwQPaqAIP7g5UYWa1dMbkoGZ_T0KHsAxHXxO6PU1X1dEUu05jcaaCgYKAfkSARISFQHGX2MiTIHt8ziTVCtN_okPWU5x0Q0175",
         token_type = "Bearer",
         refresh_token = "1//04XPug3IVTSEWCgYIARAAGAQSNwF-L9Ir0JqVcr2HippZG1bnliZfsPTHtYsk7INTcrLcMON400lphFUbQ609Z0Ui3blMLoJGcKE",
-        expires_at=1735027735,
-        scopes = set("https://www.googleapis.com/auth/gmail.addons.current.message.action https://www.googleapis.com/auth/gmail.insert https://www.googleapis.com/auth/gmail.labels https://www.googleapis.com/auth/gmail.settings.basic https://www.googleapis.com/auth/gmail.settings.sharing https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.addons.current.action.compose https://www.googleapis.com/auth/gmail.addons.current.message.readonly https://www.googleapis.com/auth/gmail.readonly https://mail.google.com/".split(" "))  
+        expires_at=1735044185,
+        scopes = set("https://www.googleapis.com/auth/gmail.addons.current.action.compose https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.settings.basic https://www.googleapis.com/auth/gmail.settings.sharing https://www.googleapis.com/auth/gmail.insert https://mail.google.com/ https://www.googleapis.com/auth/gmail.addons.current.message.readonly https://www.googleapis.com/auth/gmail.labels https://www.googleapis.com/auth/gmail.addons.current.message.action https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.readonly".split(" "))
     )
     tool_client, openai_client = asyncio.run(init_tool_node(Action.Gmail.MESSAGES_SEND, auth_config, ""))
     
