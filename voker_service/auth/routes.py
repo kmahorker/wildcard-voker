@@ -2,7 +2,7 @@ import os
 from wildcard_core.events.types import WebhookOAuthCompletion, OAuthCompletionData, WildcardEvent
 from wildcard_core.tool_search.utils.api_service import APIService
 from wildcard_core.tool_registry.tools.rest_api.types import OAuth2Flows, AuthorizationCodeFlow, ImplicitFlow, PasswordFlow, ClientCredentialsFlow
-from fastapi import Request, HTTPException
+from fastapi import Body, Query, Request, HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse
 from typing import Dict, Any, Optional, Union
 from requests_oauthlib import OAuth2Session
@@ -99,7 +99,7 @@ def refresh_token(request: Request, api_service: str):
 
 # Initialize Authlib OAuth
 @router.post("/oauth_flow/{api_service}")
-def start_oauth_flow(request: Request, api_service: str):
+def start_oauth_flow(api_service: str, data: Dict[str, Any] = Body(...)):
     """
     Starts the OAuth flow based on the provided payload.
     Expects JSON payload with:
@@ -107,9 +107,7 @@ def start_oauth_flow(request: Request, api_service: str):
     - webhook_url (str)
     - required_scopes (list)
     """
-    
-    data = request.json()
-    
+        
     print(f"DATA: {data}")
     api_service = data.get("api_service")
     webhook_url = data.get("webhook_url")
@@ -155,16 +153,15 @@ def start_oauth_flow(request: Request, api_service: str):
 
 @router.get("/callback/{api_service}/")
 @router.get("/callback/{api_service}")
-def auth_service_callback(request: Request, api_service: str):
+def auth_service_callback(api_service: str, state: str = Query(...), code: str = Query(...)):
     print(f"Received callback for service: {api_service}")
-    print(f"Query params: {request.query_params}")
+    print(f"Query params: {state}, {code}")
     
     if api_service not in [s.value for s in APIService]:
         print(f"Invalid service. Valid services: {[s.value for s in APIService]}")
         return JSONResponse({"error": "Unsupported API service."})
 
     # Verify state parameter to prevent CSRF
-    state = request.query_params.get('state')
     if not verify_state(state, api_service):
         return JSONResponse({"error": "Invalid state parameter."})
 
@@ -179,15 +176,13 @@ def auth_service_callback(request: Request, api_service: str):
         redirect_uri=callback_url,
         state=state
     )
-    
-    print("REQUEST QUERY PARAMS: ", request.query_params)
-    
+        
     # TODO: Handle other flows, assume authorization code for now
     token = oauth_client.fetch_token(
         token_url=target_flow.tokenUrl,
         client_id=settings.oauth_config[api_service]['client_id'],
         client_secret=settings.oauth_config[api_service]['client_secret'],
-        code=request.query_params.get('code')
+        code=code
     )
 
     print("TOKEN: ", token)
