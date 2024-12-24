@@ -8,7 +8,7 @@ This repository contains the rails for Voker to use the Wildcard API.
 
 cd voker_service
 
-pip install -r requirements.txt && pip install -i https://test.pypi.org/simple/ wildcard-openai==0.0.18 --extra-index-url https://pypi.org/simple/ && export PYTHONPATH=$PYTHONPATH:..
+pip install -r requirements.txt && pip install -i https://test.pypi.org/simple/ wildcard-openai==0.0.20 --extra-index-url https://pypi.org/simple/ && export PYTHONPATH=$PYTHONPATH:..
 ```
 
 Start the server

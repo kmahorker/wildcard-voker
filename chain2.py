@@ -19,33 +19,23 @@ voker_1 = {
     I should have received a few emails.
     You should only return the message ids.
     """,
-    "tool_name": Action.Gmail.THREADS_LIST,
+    "tool_name": Action.Gmail.MESSAGES_LIST,
 }
 voker_2 = {
     "user_id": user_id,
     "message": """You have been given a set of message ids. 
     Get one of the emails and understand the proposal and the vendor's price.""",
-    "tool_name": Action.Gmail.THREADS_GET,
+    "tool_name": Action.Gmail.MESSAGES_GET,
 }
 
 voker_3 = {
     "user_id": user_id,
-    "message": """You have been given a set of thread ids. 
+    "message": """You have been given a set of message ids. 
     Get one of the emails and understand the proposal and the vendor's price.""",
-    "tool_name": Action.Gmail.MESSAGES_GET,
+    "tool_name": Action.Gmail.MESSAGES_ATTACHMENTS_GET,
 }
 
-voker_4 = {
-    "user_id": user_id,
-    "message": """Analyze the email that you have received.
-    Create a draft that is a reply to the corresponding email. Include the threadId when you are creating the draft. 
-    In the draft, negotiate the price, delivery time, and unit size of the proposal from the vendor.
-    """,
-    "tool_name": Action.Gmail.DRAFTS_CREATE,
-}
-
-
-voker_list = [voker_1, voker_2, voker_3, voker_4]
+voker_list = [voker_1, voker_2, voker_3]
 
 
 # Run Voker Chain
@@ -107,6 +97,23 @@ async def run_voker_chain():
         #         break
             
         # print(f"Messages: {messages}")
+
+    print("\n\n=====WRITING CHAIN RESULT TO FILE =====\n\n")
+
+    # Gmail api returns the attachment content in base64url format 
+    # where the '+' and '/' characters of standard Base64 are respectively replaced by '-' and '_'.
+    # This function converts the base64url format to standard Base64.
+    def patch_gmail_base64(content):
+        return content.replace('-', '+').replace('_', '/')
+
+    with open('chain_result.txt', 'w') as f:
+        if isinstance(messages[-1], dict) and 'content' in messages[-1]:
+            tool_response = json.loads(messages[-1]['content'])
+            if 'data' in tool_response:
+                f.write(patch_gmail_base64(tool_response['data']))
+        else:
+            f.write(str(messages[-1]))
+
 
 if __name__ == "__main__":
     asyncio.run(run_voker_chain())

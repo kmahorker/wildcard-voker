@@ -50,7 +50,6 @@ async def run_tool_node(tool_client: ToolClient, openai_client: OpenAI, messages
         return messages
     
     # Run the first LLM completion
-        
     print("run openai completion")
     response = run_openai_completion(messages)
     print("=====response========", response)
