@@ -21,7 +21,6 @@ async def init_tool_node(tool: Action, auth_config: OAuth2AuthConfig, webhook_ur
     return tool_client, openai_client
 
 async def run_tool_node(tool_client: ToolClient, openai_client: OpenAI, messages: List[Dict[str, Any]]):
-
     response = openai_client.chat.completions.create(
         model="gpt-4o",
         messages=messages,
@@ -31,20 +30,28 @@ async def run_tool_node(tool_client: ToolClient, openai_client: OpenAI, messages
     )
     
     tool_response = await tool_client.run_tools(response)
-    return response + [{"role": "tool", "content": json.dumps(tool_response)}]
+    
+    # Get the assistant's message from the completion
+    assistant_message = response.choices[0].message.model_dump()
+    
+    # Return all previous messages plus the assistant's response and tool response
+    return messages + [
+        assistant_message,
+        {"role": "tool", "content": json.dumps(tool_response)}
+    ]
     
 
 def main():
     # In production, auth configs would be fetched from the database
     auth_config = OAuth2AuthConfig(
         type= AuthType.OAUTH2,
-        token = "",
-        token_type = "",
-        refresh_token = "",
-        expires_at=0,
-        scopes = {},    
+        token = "ya29.a0ARW5m76IRPgwks9SbG_ykajS1E75FE4-AqZqg_zqTUdwAXV2RWP_e_7JP6FBD_gla2t9jjm3yR-OTzhLIhnJBFOK_HNiQGRneQzQexHFejDw2Yy64HtQAmMSIVDWi8gpzcKq3PoWwQd5iGWNE24KxTvTj-gcIm6yvvrieYfFaCgYKAfQSARISFQHGX2Mi4pe3wanXReXpohP0_2RNvQ0175",
+        token_type = "Bearer",
+        refresh_token = "1//04XPug3IVTSEWCgYIARAAGAQSNwF-L9Ir0JqVcr2HippZG1bnliZfsPTHtYsk7INTcrLcMON400lphFUbQ609Z0Ui3blMLoJGcKE",
+        expires_at=1735023584,
+        scopes = set("https://www.googleapis.com/auth/gmail.addons.current.message.action https://www.googleapis.com/auth/gmail.insert https://www.googleapis.com/auth/gmail.labels https://www.googleapis.com/auth/gmail.settings.basic https://www.googleapis.com/auth/gmail.settings.sharing https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.addons.current.action.compose https://www.googleapis.com/auth/gmail.addons.current.message.readonly https://www.googleapis.com/auth/gmail.readonly https://mail.google.com/".split(" "))  
     )
-    tool_client, openai_client = asyncio.run(init_tool_node(Action.Gmail.SEND_EMAIL, auth_config))
+    tool_client, openai_client = asyncio.run(init_tool_node(Action.Gmail.MESSAGES_SEND, auth_config, ""))
     
     # TODO: Implement the wildcard tool prompt in core package
     wildcard_tool_prompt = "You are a wildcard tool that can perform actions on behalf of the user."
