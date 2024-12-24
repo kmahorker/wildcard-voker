@@ -41,6 +41,7 @@ export function AuthPortal() {
       setLoading(api.id)
       const response = await fetch(BASE_URL + '/auth/oauth_flow/' + api.id, {
         method: 'POST',
+        credentials: 'include', // Add this line
         headers: {
           'Content-Type': 'application/json',
         },

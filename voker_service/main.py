@@ -23,9 +23,12 @@ frontend_url = "https://wildcard-voker.vercel.app"
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Update allow origins to be base_url for security
+    allow_origins=[
+        "https://wildcard-voker.vercel.app",
+        "http://localhost:5173",  # For local development
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
