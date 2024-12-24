@@ -6,6 +6,7 @@ from openai import OpenAI
 import os
 from typing import List, Dict, Any
 import asyncio
+import json
 
 async def init_tool_node(tool: Action, auth_config: OAuth2AuthConfig, webhook_url: str):
     tool_client = ToolClient(api_key="voker-api-key", index_name="newid1", webhook_url="")
@@ -29,7 +30,8 @@ async def run_tool_node(tool_client: ToolClient, openai_client: OpenAI, messages
         temperature=0,
     )
     
-    return await tool_client.run_tools(response)
+    tool_response = await tool_client.run_tools(response)
+    return response + [{"role": "tool", "content": json.dumps(tool_response)}]
     
 
 def main():

@@ -3,10 +3,10 @@
 from wildcard_core.models import Action
 import requests
 import asyncio
-
+import json
 # base_url = "https://wildcard-voker.onrender.com"
 base_url = "https://wildcard-voker.onrender.com"
-user_id = "56243666-a186-4d17-bc98-54323e0923e3"
+user_id = "d6dae831-b518-42d4-b5fd-79eec0ad4cf0"
 voker_1 = {
     "user_id": user_id,
     "message": "Get the RFP proposal emails related to the order number 832493284",
@@ -43,9 +43,16 @@ async def run_voker_chain():
         print(f"Status code: {response.status_code}")
         print(f"Response text: {response.text}")
         if response.ok:
-            print(f"Response JSON: {response.json()}")
+            response_json = response.json()
+            print(f"Response JSON: {response_json}")
+            if "error" in response_json["data"]:
+                print(f"Error: {response_json['data']['error']}")
+                break
             
-            messages.append({"role": "assistant", "content": response.json()["content"]})
+            if "messages" in response_json["data"]:
+                messages.append({"role": "assistant", "content": json.dumps(response_json["data"]["messages"][-1])})
+                
+            print(f"Messages: {messages}")
 
 if __name__ == "__main__":
     asyncio.run(run_voker_chain())
