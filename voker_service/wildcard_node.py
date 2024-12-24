@@ -1,18 +1,18 @@
 from wildcard_core.auth.oauth_helper import OAuthCredentialsRequiredException
 from wildcard_core.tool_registry.tools.rest_api.types.auth_types import AuthType, OAuth2AuthConfig
 from wildcard_core.tool_search.utils.api_service import APIService
-from wildcard_openai import ToolClient, Action
+from wildcard_openai import ToolClient, Action, Prompt
 from openai import OpenAI
 import os
 from typing import List, Dict, Any
 import asyncio
 
 async def init_tool_node(tool: Action, auth_config: OAuth2AuthConfig, webhook_url: str):
-    tool_client = ToolClient(api_key="your-api-key", index_name="demo2", webhook_url=webhook_url)
+    tool_client = ToolClient(api_key="voker-api-key", index_name="newid1", webhook_url="")
     await tool_client.add(tool)
     
     # Register Authentication Credentials
-    await tool_client.register_api_auth(APIService.GMAIL, auth_config)
+    tool_client.register_api_auth(APIService.GMAIL, auth_config)
     
     # Could use an instance of the Voker class here
     openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -50,7 +50,8 @@ def main():
     voker_content = "Send an email to logan.mdchainsolutions@gmail.com that says 'Hello!'"
         
     messages = [
-        {"role": "system", "content": f"{voker_system_prompt} {wildcard_tool_prompt}"},
+        Prompt.fixed_tool_prompt(tool_client.get_tools(format="openai")),
+        {"role": "system", "content": f"{voker_system_prompt}"},
         {"role": "user", "content": voker_content}
     ]
 
