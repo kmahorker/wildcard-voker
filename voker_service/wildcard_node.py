@@ -33,15 +33,13 @@ async def run_tool_node(tool_client: ToolClient, openai_client: OpenAI, messages
     def process_response(response: ChatCompletion, messages: List[Dict[str, Any]], tool_response: Optional[Any] = None):
         # Gives the updated full list of messages for the next iteration
         assistant_message = response.choices[0].message.model_dump()
-        if assistant_message.get("content") is None:
-            assistant_message["content"] = ""
-            
+        
         messages += [
             assistant_message
         ]
         
         if tool_response is not None:
-            tool_call_id = assistant_message.get("tool_calls")[0].get("id")
+            tool_call_id = response.choices[0].message.tool_calls[0].id
             messages += [
                 {"role": "tool", "tool_call_id": tool_call_id, "content": json.dumps(tool_response)}
             ]
@@ -57,7 +55,6 @@ async def run_tool_node(tool_client: ToolClient, openai_client: OpenAI, messages
     final_response = run_openai_completion(messages)
 
     return process_response(final_response, messages)
-    
 
 def main():
     # In production, auth configs would be fetched from the database

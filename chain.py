@@ -6,7 +6,7 @@ import asyncio
 import json
 # base_url = "https://wildcard-voker.onrender.com"
 base_url = "https://wildcard-voker.onrender.com"
-user_id = "d6dae831-b518-42d4-b5fd-79eec0ad4cf0"
+user_id = "ff863eb8-c921-4f6d-9637-80c2f40ef713"
 voker_1 = {
     "user_id": user_id,
     "message": "Get the RFP proposal emails related to the order number 832493284",
@@ -15,17 +15,17 @@ voker_1 = {
 
 voker_2 = {
     "user_id": user_id,
+    "message": "Get each of the emails and summarize the content",
+    "tool_name": Action.Gmail.MESSAGES_GET,
+}
+
+voker_3 = {
+    "user_id": user_id,
     "message": "Create a draft email in response to the email that analyzes the RFP proposal and negotiates a price reduction",
     "tool_name": Action.Gmail.DRAFTS_CREATE,
 }
 
-# voker_3 = {
-#     "user_id": user_id,
-#     "message": "",
-#     "tool": Action.Gmail.SEND_EMAIL,
-# }
-
-voker_list = [voker_1, voker_2]
+voker_list = [voker_1, voker_2, voker_3]
 
 
 # Run Voker Chain
@@ -44,15 +44,11 @@ async def run_voker_chain():
         print(f"Response text: {response.text}")
         if response.ok:
             response_json = response.json()
-            print(f"Response JSON: {response_json}")
-            if "error" in response_json["data"]:
-                print(f"Error: {response_json['data']['error']}")
+            if "error" not in response_json:
+                messages.extend(response_json["data"])
+            else:
+                print(f"Error: {response_json['error']}")
                 break
-            
-            if "messages" in response_json["data"]:
-                messages.append({"role": "assistant", "content": json.dumps(response_json["data"]["messages"][-1])})
-                
-            print(f"Messages: {messages}")
 
 if __name__ == "__main__":
     asyncio.run(run_voker_chain())

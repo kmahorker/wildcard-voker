@@ -13,6 +13,7 @@ import os
 import asyncio
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from agents.packages.wc_openai.wildcard_openai import Prompt
 from voker_service.auth.routes import router as auth_router
 from voker_service.wildcard_node import init_tool_node, run_tool_node
 
@@ -60,6 +61,7 @@ def patch_gmail_scopes(scopes: List[str]) -> List[str]:
 def run_with_tool(request: RunRequest):
     
     print(f"Request: {request.model_dump()}")
+    voker_system_prompt = "Perform the action specified by the user."
     
     async def run_with_tool_async():
         api_service = APIService.GMAIL
@@ -75,7 +77,14 @@ def run_with_tool(request: RunRequest):
             scopes = patch_gmail_scopes(user_credentials["scope"]),    
         )
         tool_client, openai_client = await init_tool_node(request.tool_name, auth_config, webhook_url)
-        tool_response = await run_tool_node(tool_client, openai_client, request.messages)
+        messages = [
+            Prompt.fixed_tool_prompt(tool_client.get_tools(format="openai")),
+            {"role": "system", "content": f"{voker_system_prompt}"},
+        ]
+        messages.extend(request.messages)
+        
+        print(f"SENDING MESSAGES: {messages}")
+        tool_response = await run_tool_node(tool_client, openai_client, messages)
         return tool_response
     
     tool_response = asyncio.run(run_with_tool_async())
