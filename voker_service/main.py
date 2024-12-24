@@ -58,7 +58,6 @@ def patch_gmail_scopes(scopes: List[str]) -> List[str]:
 @app.post('/run_with_tool')
 def run_with_tool(request: RunRequest):
     
-    print(f"Request: {request.model_dump()}")
     
     async def run_with_tool_async():
         api_service = APIService.GMAIL
@@ -80,7 +79,6 @@ def run_with_tool(request: RunRequest):
         ]
         messages.extend(request.messages)
         
-        print(f"SENDING MESSAGES: {messages}")
         tool_response = await run_tool_node(tool_client, openai_client, messages)
         return tool_response
     
@@ -92,7 +90,6 @@ def agent_webhook(request: WebhookRequest[Any], user_id: str):
     """
     Handle webhook callbacks from the auth_service.
     """
-    print("RECEIVED WEBHOOK: ", request.model_dump())
     if request.event == WildcardEvent.END_OAUTH_FLOW or request.event == WildcardEvent.END_REFRESH_TOKEN:
         save_credentials_for_user(user_id, request.data["api_service"], request.data)
         
