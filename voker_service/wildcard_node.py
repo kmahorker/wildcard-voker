@@ -27,6 +27,7 @@ async def run_tool_node(tool_client: ToolClient, openai_client: OpenAI, messages
             messages=messages,
             tools=tool_client.get_tools(format="openai"),
             tool_choice="required",
+            parallel_tool_calls=False,
             temperature=0,
         )
         
@@ -49,9 +50,13 @@ async def run_tool_node(tool_client: ToolClient, openai_client: OpenAI, messages
         return messages
     
     # Run the first LLM completion
-    response = run_openai_completion(messages)
-    tool_response = await tool_client.run_tools(response)
-    messages = process_response(response, messages, tool_response)
+    has_tool_call = True
+    
+    while has_tool_call:
+        response = run_openai_completion(messages)
+        tool_response = await tool_client.run_tools(response)
+        messages = process_response(response, messages, tool_response)
+        has_tool_call = response.choices[0].message.tool_calls is not None or response.choices[0].message.tool_calls is not []
     
     # Send the Tool Response back to the LLM to get a final response
     final_response = run_openai_completion(messages)
