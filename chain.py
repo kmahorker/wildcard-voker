@@ -6,7 +6,7 @@ import asyncio
 
 # base_url = "https://wildcard-voker.onrender.com"
 base_url = "https://wildcard-voker.onrender.com"
-user_id = "cdee7474-b45f-43c5-bf93-a4ef916db370"
+user_id = "9a15cb1a-8709-434a-9a46-0f39ee2bd0ad"
 voker_1 = {
     "user_id": user_id,
     "message": "Get the RFP proposal emails related to the order number 832493284",
@@ -33,7 +33,7 @@ voker_list = [voker_1, voker_2]
 async def run_voker_chain():
     messages = []
     for voker in voker_list:
-        messages.append(voker["message"])
+        messages.append({"role": "user", "content": voker["message"]})
         response = requests.post(f"{base_url}/run_with_tool", json={
             "user_id": user_id, 
             "messages": messages, 
@@ -44,6 +44,8 @@ async def run_voker_chain():
         print(f"Response text: {response.text}")
         if response.ok:
             print(f"Response JSON: {response.json()}")
+            
+        messages.append({"role": "assistant", "content": response.json()["content"]})
 
 if __name__ == "__main__":
     asyncio.run(run_voker_chain())

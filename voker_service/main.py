@@ -38,9 +38,13 @@ app.include_router(auth_router, prefix="/auth")
 # Initialize the OAuth credentials store
 app.state.oauth_credentials = {}
 
+class Message(BaseModel):
+    role: str
+    content: str
+
 class RunRequest(BaseModel):
     user_id: str
-    messages: List[str]
+    messages: List[Message]
     tool_name: str
 
 @app.get('/health')
