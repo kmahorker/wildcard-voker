@@ -8,7 +8,7 @@ from typing import List, Dict, Any
 import asyncio
 
 async def init_tool_node(tool: Action, auth_config: OAuth2AuthConfig, webhook_url: str):
-    tool_client = ToolClient(api_key="your-api-key", index_name="demo2", webhook_url=webhook_url)
+    tool_client = ToolClient(api_key="your-api-key", index_name="newid1", webhook_url=webhook_url)
     await tool_client.add(tool)
     
     # Register Authentication Credentials

@@ -2,10 +2,11 @@
 # Call /run_with_tool for each stage
 from wildcard_core.models import Action
 import requests
+import asyncio
 
 # base_url = "https://wildcard-voker.onrender.com"
-base_url = "http://localhost:8000"
-user_id = "550e8400-e29b-41d4-a716-446655440000"
+base_url = "https://wildcard-voker.onrender.com"
+user_id = "cdee7474-b45f-43c5-bf93-a4ef916db370"
 voker_1 = {
     "user_id": user_id,
     "message": "Get the RFP proposal emails related to the order number 832493284",
@@ -28,12 +29,21 @@ voker_list = [voker_1, voker_2]
 
 
 # Run Voker Chain
-messages = []
-for voker in voker_list:
-    messages.append(voker["message"])
-    response = requests.post(f"{base_url}/run_with_tool", json={
-        "user_id": user_id, 
-        "messages": messages, 
-        "tool_name": voker["tool_name"]
-    })
-    
+
+async def run_voker_chain():
+    messages = []
+    for voker in voker_list:
+        messages.append(voker["message"])
+        response = requests.post(f"{base_url}/run_with_tool", json={
+            "user_id": user_id, 
+            "messages": messages, 
+            "tool_name": voker["tool_name"]
+        })
+        
+        print(f"Status code: {response.status_code}")
+        print(f"Response text: {response.text}")
+        if response.ok:
+            print(f"Response JSON: {response.json()}")
+
+if __name__ == "__main__":
+    asyncio.run(run_voker_chain())
