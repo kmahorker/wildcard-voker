@@ -44,6 +44,7 @@ class RunRequest(BaseModel):
     user_id: str
     messages: List[Dict[str, Any]]  # Allow any string keys/values
     tool_name: str
+    voker_system_prompt: str
 
 @app.get('/health')
 async def health():
@@ -51,14 +52,13 @@ async def health():
 
 
 def patch_gmail_scopes(scopes: List[str]) -> List[str]:
-    # GMAIL Metadata scopes conflict with other scopes in production (gmail side issue)
+    # GMAIL Metadata scopes conflict with other scopes in production (gmail issue)
     return scopes + ["https://www.googleapis.com/auth/gmail.addons.current.message.metadata", "https://www.googleapis.com/auth/gmail.metadata"]
 
 @app.post('/run_with_tool')
 def run_with_tool(request: RunRequest):
     
     print(f"Request: {request.model_dump()}")
-    voker_system_prompt = "Perform the action specified by the user."
     
     async def run_with_tool_async():
         api_service = APIService.GMAIL
@@ -76,7 +76,7 @@ def run_with_tool(request: RunRequest):
         tool_client, openai_client = await init_tool_node(request.tool_name, auth_config, webhook_url)
         messages = [
             Prompt.fixed_tool_prompt(tool_client.get_tools(format="openai")),
-            {"role": "system", "content": f"{voker_system_prompt}"},
+            {"role": "system", "content": f"{request.voker_system_prompt}"},
         ]
         messages.extend(request.messages)
         
