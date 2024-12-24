@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Button } from './ui/button'
+import { v4 as uuidv4 } from 'uuid'
 
 const BASE_URL = "https://wildcard-voker.onrender.com"
 
@@ -34,22 +35,32 @@ const apis: API[] = [
 
 export function AuthPortal() {
   const [loading, setLoading] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string>(uuidv4())
+
+  const generateRandomUserId = () => {
+    setUserId(uuidv4())
+  }
 
   const handleConnect = async (api: API) => {
+    if (!userId.trim()) {
+      alert('Please enter or generate a User ID first')
+      return
+    }
+
     console.log(`Connecting to API: ${api.id}`)
     try {
       setLoading(api.id)
       const response = await fetch(BASE_URL + '/auth/oauth_flow/' + api.id, {
         method: 'POST',
-        credentials: 'include', // Add this line
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           api_service: api.id,
-          webhook_url: BASE_URL + '/auth_webhook',
+          webhook_url: BASE_URL + '/auth_webhook' + "/" + userId,
           required_scopes: api.scopes,
-          flow: api.flow
+          flow: api.flow,
         }),
       })
 
@@ -76,7 +87,27 @@ export function AuthPortal() {
           </p>
         </div>
 
+        <div className="mb-8 bg-white shadow rounded-lg p-6">
+          <div className="mb-4">
+            <h3 className="text-lg font-medium text-gray-900">User Identifier</h3>
+            <p className="text-sm text-gray-500">Enter or generate a unique ID to track your API connections. This ID will be used to manage your OAuth tokens.</p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <input
+              type="text"
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
+              placeholder="Enter User ID"
+              className="flex-1 p-2 border rounded"
+            />
+            <Button onClick={generateRandomUserId}>
+              Generate Random ID
+            </Button>
+          </div>
+        </div>
+
         <div className="space-y-4">
+          
           {apis.map((api) => (
             <div
               key={api.id}
@@ -93,7 +124,7 @@ export function AuthPortal() {
               </div>
               <Button
                 onClick={() => handleConnect(api)}
-                disabled={loading === api.id}
+                disabled={loading === api.id || !userId}
               >
                 {loading === api.id ? 'Connecting...' : 'Connect'}
               </Button>
