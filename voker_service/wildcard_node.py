@@ -35,8 +35,7 @@ async def run_tool_node(tool_client: ToolClient, openai_client: OpenAI, messages
     assistant_message = response.choices[0].message.model_dump()
     if assistant_message.get("content") is None:
         assistant_message["content"] = "" # Set empty string if content is null
-    assistant_message = json.dumps(assistant_message)
-    
+        
     # Return all previous messages plus the assistant's response and tool response
     return messages + [
         assistant_message,
