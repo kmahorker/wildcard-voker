@@ -4,10 +4,10 @@ from wildcard_core.tool_search.utils.api_service import APIService
 from wildcard_openai import ToolClient, Action, Prompt
 from openai import OpenAI
 import os
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import asyncio
 import json
-
+from openai.types.chat.chat_completion import ChatCompletion
 async def init_tool_node(tool: Action, auth_config: OAuth2AuthConfig, webhook_url: str):
     tool_client = ToolClient(api_key="voker-api-key", index_name="newid1", webhook_url="")
     await tool_client.add(tool)
@@ -21,36 +21,52 @@ async def init_tool_node(tool: Action, auth_config: OAuth2AuthConfig, webhook_ur
     return tool_client, openai_client
 
 async def run_tool_node(tool_client: ToolClient, openai_client: OpenAI, messages: List[Dict[str, Any]]):
-    response = openai_client.chat.completions.create(
-        model="gpt-4o",
-        messages=messages,
-        tools=tool_client.get_tools(format="openai"),
-        tool_choice="auto",
-        temperature=0,
-    )
-    
-    tool_response = await tool_client.run_tools(response)
-    
-    # Get the assistant's message from the completion and ensure content is not null
-    assistant_message = response.choices[0].message.model_dump()
-    if assistant_message.get("content") is None:
-        assistant_message["content"] = "" # Set empty string if content is null
+    def run_openai_completion(messages: List[Dict[str, Any]]):
+        return openai_client.chat.completions.create(
+            model="gpt-4o",
+            messages=messages,
+            tools=tool_client.get_tools(format="openai"),
+            tool_choice="auto",
+            temperature=0,
+        )
         
-    # Return all previous messages plus the assistant's response and tool response
-    return messages + [
-        assistant_message,
-        {"role": "tool", "content": json.dumps(tool_response)}
-    ]
+    def process_response(response: ChatCompletion, messages: List[Dict[str, Any]], tool_response: Optional[Any] = None):
+        # Gives the updated full list of messages for the next iteration
+        assistant_message = response.choices[0].message.model_dump()
+        if assistant_message.get("content") is None:
+            assistant_message["content"] = ""
+            
+        messages += [
+            assistant_message
+        ]
+        
+        if tool_response is not None:
+            tool_call_id = assistant_message.get("tool_calls")[0].get("id")
+            messages += [
+                {"role": "tool", "tool_call_id": tool_call_id, "content": json.dumps(tool_response)}
+            ]
+        
+        return messages
+    
+    # Run the first LLM completion
+    response = run_openai_completion(messages)
+    tool_response = await tool_client.run_tools(response)
+    messages = process_response(response, messages, tool_response)
+    
+    # Send the Tool Response back to the LLM to get a final response
+    final_response = run_openai_completion(messages)
+
+    return process_response(final_response, messages)
     
 
 def main():
     # In production, auth configs would be fetched from the database
     auth_config = OAuth2AuthConfig(
         type= AuthType.OAUTH2,
-        token = "ya29.a0ARW5m76IRPgwks9SbG_ykajS1E75FE4-AqZqg_zqTUdwAXV2RWP_e_7JP6FBD_gla2t9jjm3yR-OTzhLIhnJBFOK_HNiQGRneQzQexHFejDw2Yy64HtQAmMSIVDWi8gpzcKq3PoWwQd5iGWNE24KxTvTj-gcIm6yvvrieYfFaCgYKAfQSARISFQHGX2Mi4pe3wanXReXpohP0_2RNvQ0175",
+        token = "ya29.a0ARW5m74jmMIiVYJpbwKkWAT4Mq_rHBp1QuiTa_yPFCXbGszUl1aAxLcM5O76tqZiI-GMcY5WTpJlzO2k19MW0xVhr2ZrtLBgHbIaLp5jQYO-l4yGJqBJLf6svekP8TKv9A9jridOFmEkdIj31PBx4Nk2BIqe5deKkW74DM8maCgYKAUISARISFQHGX2MidStqBSSfgOnlgI-juZXumQ0175",
         token_type = "Bearer",
         refresh_token = "1//04XPug3IVTSEWCgYIARAAGAQSNwF-L9Ir0JqVcr2HippZG1bnliZfsPTHtYsk7INTcrLcMON400lphFUbQ609Z0Ui3blMLoJGcKE",
-        expires_at=1735023584,
+        expires_at=1735027735,
         scopes = set("https://www.googleapis.com/auth/gmail.addons.current.message.action https://www.googleapis.com/auth/gmail.insert https://www.googleapis.com/auth/gmail.labels https://www.googleapis.com/auth/gmail.settings.basic https://www.googleapis.com/auth/gmail.settings.sharing https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.addons.current.action.compose https://www.googleapis.com/auth/gmail.addons.current.message.readonly https://www.googleapis.com/auth/gmail.readonly https://mail.google.com/".split(" "))  
     )
     tool_client, openai_client = asyncio.run(init_tool_node(Action.Gmail.MESSAGES_SEND, auth_config, ""))
