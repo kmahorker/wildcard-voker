@@ -32,8 +32,8 @@ async def run_tool_node(tool_client: ToolClient, openai_client: OpenAI, messages
         
     def process_response(response: ChatCompletion, messages: List[Dict[str, Any]], tool_response: Optional[Any] = None):
         # Gives the updated full list of messages for the next iteration
-        assistant_message = response.choices[0].message.model_dump()
-        if assistant_message["content"] is None:
+        assistant_message = response.choices[0].message.model_dump(exclude_none=True, exclude_unset=True)
+        if "content" not in assistant_message:
             assistant_message["content"] = ""
         
         messages += [
