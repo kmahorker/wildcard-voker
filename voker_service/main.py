@@ -51,6 +51,11 @@ class RunRequest(BaseModel):
 async def health():
     return {"status": "healthy"}
 
+
+def patch_gmail_scopes(scopes: List[str]) -> List[str]:
+    # GMAIL Metadata scopes conflict with other scopes in production (gmail side issue)
+    return scopes + ["https://www.googleapis.com/auth/gmail.addons.current.message.metadata", "https://www.googleapis.com/auth/gmail.metadata"]
+
 @app.post('/run_with_tool')
 def run_with_tool(request: RunRequest):
     
@@ -65,7 +70,7 @@ def run_with_tool(request: RunRequest):
             token_type = user_credentials["token_type"],
             refresh_token = user_credentials["refresh_token"],
             expires_at=user_credentials["expires_at"],
-            scopes = user_credentials["scope"],    
+            scopes = patch_gmail_scopes(user_credentials["scope"]),    
         )
         tool_client, openai_client = await init_tool_node(request.tool_name, auth_config, webhook_url)
         tool_response = await run_tool_node(tool_client, openai_client, request.messages)
