@@ -40,14 +40,9 @@ app.include_router(auth_router, prefix="/auth")
 # Initialize the OAuth credentials store
 app.state.oauth_credentials = {}
 
-class Message(TypedDict):
-    role: str
-    content: str
-    tool_call_id: Optional[str]
-
 class RunRequest(BaseModel):
     user_id: str
-    messages: List[Message]
+    messages: List[Dict[str, Any]]  # Allow any string keys/values
     tool_name: str
 
 @app.get('/health')
