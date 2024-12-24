@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, TypedDict
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -39,7 +39,7 @@ app.include_router(auth_router, prefix="/auth")
 # Initialize the OAuth credentials store
 app.state.oauth_credentials = {}
 
-class Message(BaseModel):
+class Message(TypedDict):
     role: str
     content: str
 
