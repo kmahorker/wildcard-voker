@@ -13,7 +13,7 @@ import os
 import asyncio
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from agents.packages.wc_openai.wildcard_openai import Prompt
+from wildcard_openai import Prompt
 from voker_service.auth.routes import router as auth_router
 from voker_service.wildcard_node import init_tool_node, run_tool_node
 
