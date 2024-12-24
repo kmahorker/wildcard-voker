@@ -59,6 +59,8 @@ def patch_gmail_scopes(scopes: List[str]) -> List[str]:
 @app.post('/run_with_tool')
 def run_with_tool(request: RunRequest):
     
+    print(f"Request: {request.model_dump()}")
+    
     async def run_with_tool_async():
         api_service = APIService.GMAIL
         webhook_url = f"{base_url}/auth_webhook/{request.user_id}"
