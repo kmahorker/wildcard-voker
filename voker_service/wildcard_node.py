@@ -26,7 +26,7 @@ async def run_tool_node(tool_client: ToolClient, openai_client: OpenAI, messages
             model="gpt-4o",
             messages=messages,
             tools=tool_client.get_tools(format="openai"),
-            tool_choice="auto",
+            tool_choice="required",
             temperature=0,
         )
         
