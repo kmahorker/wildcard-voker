@@ -1,4 +1,5 @@
-from typing import Any, Dict, List, TypedDict
+from typing import Any, Dict, List, Optional
+from typing_extensions import TypedDict
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -42,6 +43,7 @@ app.state.oauth_credentials = {}
 class Message(TypedDict):
     role: str
     content: str
+    tool_call_id: Optional[str]
 
 class RunRequest(BaseModel):
     user_id: str
