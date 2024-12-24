@@ -31,8 +31,11 @@ async def run_tool_node(tool_client: ToolClient, openai_client: OpenAI, messages
     
     tool_response = await tool_client.run_tools(response)
     
-    # Get the assistant's message from the completion
+    # Get the assistant's message from the completion and ensure content is not null
     assistant_message = response.choices[0].message.model_dump()
+    if assistant_message.get("content") is None:
+        assistant_message["content"] = "" # Set empty string if content is null
+    assistant_message = json.dumps(assistant_message)
     
     # Return all previous messages plus the assistant's response and tool response
     return messages + [
@@ -56,7 +59,7 @@ def main():
     # TODO: Implement the wildcard tool prompt in core package
     wildcard_tool_prompt = "You are a wildcard tool that can perform actions on behalf of the user."
     voker_system_prompt = "Perform the action specified by the user."
-    voker_content = "Send an email to logan.mdchainsolutions@gmail.com that says 'Hello!'"
+    voker_content = "Send an email to logan.midchainsolutions@gmail.com that says 'Hello!'"
         
     messages = [
         Prompt.fixed_tool_prompt(tool_client.get_tools(format="openai")),
