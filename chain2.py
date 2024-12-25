@@ -1,7 +1,5 @@
 
-# Call /run_with_tool for each stage
 from wildcard_core.models import Action
-import requests
 import asyncio
 import json
 from voker_service.wildcard_node import init_tool_node, run_tool_node
@@ -44,17 +42,10 @@ voker_list = [voker_1, voker_2, voker_3]
 async def run_single_voker(voker, previous_messages):
     tool_client, openai_client = await init_tool_node(voker["tool_name"], auth_config.gmail_auth_config, "")
     
-    # TODO: Implement the wildcard tool prompt in core package
-    wildcard_tool_prompt = "You are a wildcard tool that can perform actions on behalf of the user."
     voker_system_prompt = """
     The users name is Logan. His email is logan.midchainsolutions@gmail.com.
     Perform the action specified by the user.
     """
-    voker_content = "Send an email to logan.midchainsolutions@gmail.com that says 'Hello!'"
-        
-    # if len(previous_messages) > 2:
-    #     # Prune the system messages
-    #     previous_messages = previous_messages[2:]
     
     messages = [
         Prompt.fixed_tool_prompt(tool_client.get_tools(format="openai")),
@@ -70,26 +61,6 @@ async def run_voker_chain():
     for voker in voker_list:
         messages.append({"role": "user", "content": voker["message"]})
         messages = await run_single_voker(voker, messages)        
-        
-        
-        # response = requests.post(f"{base_url}/run_with_tool", json={
-        #     "user_id": user_id, 
-        #     "messages": messages, 
-        #     "tool_name": voker["tool_name"]
-        # })
-        
-        
-        # print(f"Status code: {response.status_code}")
-        # print(f"Response text: {response.text}")
-        # if response.ok:
-        #     response_json = response.json()
-        #     if "error" not in response_json:
-        #         messages = response_json["data"]
-        #     else:
-        #         print(f"Error: {response_json['error']}")
-        #         break
-            
-        # print(f"Messages: {messages}")
 
     print("\n\n=====WRITING CHAIN RESULT TO FILE =====\n\n")
 
