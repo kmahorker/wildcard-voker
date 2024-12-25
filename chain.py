@@ -3,6 +3,7 @@
 from wildcard_core.models import Action
 import requests
 import asyncio
+import argparse
 import json
 from voker_service.wildcard_node import init_tool_node, run_tool_node
 
@@ -11,10 +12,8 @@ from wildcard_core.tool_registry.tools.rest_api.types.auth_types import AuthType
 from wildcard_openai import Prompt
 
 base_url = "https://wildcard-voker.onrender.com"
-user_id = "1815980c-8218-47bb-8010-5f5ac0ca8cfe"
 
 voker_1 = {
-    "user_id": user_id,
     "message": """
     The users name is Logan. His email is logan.midchainsolutions@gmail.com.
     Search for the messages in inbox that are about the order number 832493284.
@@ -23,7 +22,6 @@ voker_1 = {
     "tool_name": Action.Gmail.THREADS_LIST,
 }
 voker_2 = {
-    "user_id": user_id,
     "message": """You have been given a set of message ids. 
     Get one of the emails and understand the proposal and the vendor's price.
     """,
@@ -31,14 +29,12 @@ voker_2 = {
 }
 
 voker_3 = {
-    "user_id": user_id,
     "message": """You have been given a set of thread ids. 
     Get one of the emails and understand the proposal and the vendor's price.""",
     "tool_name": Action.Gmail.MESSAGES_GET,
 }
 
 voker_4 = {
-    "user_id": user_id,
     "message": """Analyze the email that you have received.
     Create a draft that is a reply to the corresponding email. Include the threadId when you are creating the draft. 
     In the draft, negotiate the price, delivery time, and unit size of the proposal from the vendor.
@@ -51,7 +47,7 @@ voker_list = [voker_1, voker_2, voker_3, voker_4]
 
 
 # Run Voker Chain
-async def run_voker_chain():
+async def run_voker_chain(user_id: str):
     voker_system_prompt = """
     Perform the action specified by the user. 
     Do not ask or expect for any further information than what the user has already provided.
@@ -67,10 +63,7 @@ async def run_voker_chain():
             "tool_name": voker["tool_name"],
             "voker_system_prompt": voker_system_prompt
         })
-        
-        
-        print(f"Status code: {response.status_code}")
-        print(f"Response text: {response.text}")
+
         if response.ok:
             response_json = response.json()
             if "error" not in response_json:
@@ -78,6 +71,10 @@ async def run_voker_chain():
             else:
                 print(f"Error: {response_json['error']}")
                 break
-            
+
 if __name__ == "__main__":
-    asyncio.run(run_voker_chain())
+    parser = argparse.ArgumentParser(description='Chain script.')
+    parser.add_argument('--user_id', required=True, help='User ID')
+    args = parser.parse_args()
+
+    asyncio.run(run_voker_chain(args.user_id))
