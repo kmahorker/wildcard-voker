@@ -5,7 +5,7 @@ This repository contains the rails for Voker to use the Wildcard API.
 ## Setup
 
 ```bash
-virtualenv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 
 pip install -r voker_service/requirements.txt
