@@ -218,7 +218,8 @@ def auth_service_callback(api_service: str, state: str = Query(...), code: str =
     print("SENDING PAYLOAD: ", payload.model_dump())
     response = requests.post(webhook_url, json=payload.model_dump())
     response.raise_for_status()
-    return JSONResponse({"message": "Token received successfully."})
+    return JSONResponse({"message": "Token received successfully.", 
+                         "data": payload.data.model_dump()})
 
 # TODO: This is unsafe without a Wildcard API key
 # @router.get("/auth/{api_service}/token")
