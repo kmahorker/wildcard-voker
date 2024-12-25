@@ -50,13 +50,12 @@ async def run_tool_node(tool_client: ToolClient, openai_client: OpenAI, messages
         return messages
     
     # Run the first LLM completion
-    print("run openai completion")
+    print("Run Voker Stage")
     response = run_openai_completion(messages)
-    print("=====response========", response)
     tool_response = None
     if response.choices[0].message.tool_calls is not None:
         tool_response = await tool_client.run_tools(response)
-        print("=====tool response========", tool_response)
+        print("============ Tool Response =============\n\n", json.dumps(tool_response, indent=2))
     
     messages = process_response(response, messages, tool_response)
         
