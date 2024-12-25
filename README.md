@@ -4,6 +4,8 @@ This repository contains the rails for Voker to use the Wildcard API.
 
 ## Setup
 
+### Dependencies
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
@@ -12,8 +14,6 @@ pip install -r voker_service/requirements.txt
 pip install -i https://test.pypi.org/simple/ wildcard-openai==0.0.22 --extra-index-url https://pypi.org/simple/
 export PYTHONPATH=$PYTHONPATH:..
 ```
-
-## Setup
 
 ### OpenAI Key
 
