@@ -61,31 +61,22 @@ async def run_tool_node(tool_client: ToolClient, openai_client: OpenAI, messages
         
     return messages
 
-def main():
-    # In production, auth configs would be fetched from the database
-    auth_config = OAuth2AuthConfig(
-        type= AuthType.OAUTH2,
-        token = "ya29.a0ARW5m76WQPTxgqPPEdo1SaQI_9yL03U3CSmu_YUSJoqyuFmq3x-JIhPpZ73KV2d8kLptfnec_6oQQiFY1iCbCZWv0jUbhdE5P3uYBObaThi4Bh_ZmzwMKXwQPaqAIP7g5UYWa1dMbkoGZ_T0KHsAxHXxO6PU1X1dEUu05jcaaCgYKAfkSARISFQHGX2MiTIHt8ziTVCtN_okPWU5x0Q0175",
-        token_type = "Bearer",
-        refresh_token = "1//04XPug3IVTSEWCgYIARAAGAQSNwF-L9Ir0JqVcr2HippZG1bnliZfsPTHtYsk7INTcrLcMON400lphFUbQ609Z0Ui3blMLoJGcKE",
-        expires_at=1735044185,
-        scopes = set("https://www.googleapis.com/auth/gmail.addons.current.action.compose https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.settings.basic https://www.googleapis.com/auth/gmail.settings.sharing https://www.googleapis.com/auth/gmail.insert https://mail.google.com/ https://www.googleapis.com/auth/gmail.addons.current.message.readonly https://www.googleapis.com/auth/gmail.labels https://www.googleapis.com/auth/gmail.addons.current.message.action https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.readonly".split(" "))
-    )
-    tool_client, openai_client = asyncio.run(init_tool_node(Action.Gmail.MESSAGES_SEND, auth_config, ""))
+
+async def run_single_voker(voker, voker_system_prompt, auth_config, previous_messages, voker_inputs = None):
+    tool_client, openai_client = await init_tool_node(voker["tool_name"], auth_config, "")
     
-    # TODO: Implement the wildcard tool prompt in core package
-    wildcard_tool_prompt = "You are a wildcard tool that can perform actions on behalf of the user."
-    voker_system_prompt = "Perform the action specified by the user."
-    voker_content = "Send an email to logan.midchainsolutions@gmail.com that says 'Hello!'"
-        
+    # Process Voker Inputs
+    if voker_inputs is not None:
+        for key, value in voker_inputs.items():
+            voker_system_prompt = voker_system_prompt.replace(f"@{key}", value)
+            for message in previous_messages:
+                if message["role"] == "user":
+                    message["content"] = message["content"].replace(f"@{key}", value)
+    
     messages = [
         Prompt.fixed_tool_prompt(tool_client.get_tools(format="openai")),
-        {"role": "system", "content": f"{voker_system_prompt}"},
-        {"role": "user", "content": voker_content}
-    ]
+        {"role": "system", "content": f"{voker_system_prompt}"}
+    ] + previous_messages
 
-    response = asyncio.run(run_tool_node(tool_client, openai_client, messages))
-    print(response)
-    
-if __name__ == "__main__":
-    main()
+    response = await run_tool_node(tool_client, openai_client, messages)
+    return response
