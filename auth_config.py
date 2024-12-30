@@ -7,11 +7,11 @@ def patch_gmail_scopes(scopes: List[str]) -> List[str]:
     # GMAIL Metadata scopes conflict with other scopes in production (gmail issue)
     return scopes + ["https://www.googleapis.com/auth/gmail.addons.current.message.metadata", "https://www.googleapis.com/auth/gmail.metadata"]
 
-OUTPUT = """<PASTE AUTH OUTPUT HERE>""" # Fill in with response from https://wildcard-voker.vercel.app
-DATA = json.loads(OUTPUT)["data"]
+# OUTPUT = """<PASTE AUTH OUTPUT HERE>""" # Fill in with response from https://wildcard-voker.vercel.app
+# DATA = json.loads(OUTPUT)["data"]
 
 class AuthConfig:
-    def __init__(self, data: dict = DATA):
+    def __init__(self, data: dict):
         self.data = data
 
     def get_gmail_auth_config(self):
